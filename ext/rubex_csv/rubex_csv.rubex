@@ -10,6 +10,7 @@ lib "<stdio.h>"
   FILE * fopen(char *, char *)
   char * fgets(char *, int n, FILE *)
   int fclose( FILE * )
+  
 end
 
 struct csv_data
@@ -24,30 +25,37 @@ class RubexCSV attach csv_data
     char * file = @file_name
     int num_lines = @lines
     
-    data$.csv_data.file = fopen(file, "r");
+    data$.csv_data.file = fopen(file, "r")
     
     if data$.csv_data.file == NULL
       raise("Cannot read this file")
     end
-
-    data$.csv_data.data = <char *>xmalloc(sizeof(char)*num_lines*200);
+    data$.csv_data.data = <char *>xmalloc(sizeof(char)*num_lines*200)
+    int i = 0
+    while(i < num_lines) do
+      fgets(&data$.csv_data.data[i*200], 200, data$.csv_data.file)
+      i += 1
+    end
   end
 
-  cfunc void _read_and_profit(int line)
+  cfunc void _read_and_profit(int line, int step) no_gil
+    int i = line
+
+    while(i < step) do
       
+    end
   end
 
   # Multi-threaded reading of files. 
   # Method of working:
   # * Spawn 4 threads and pass the line numbers which are to be read for each thread.
   # * Inside each thread 
-  def read_and_profit(line)
+  def read_and_profit(line, step_size)
     int line_no = line
-    
-  end
-
-  def avg_profit
-    
+    int step = step_size
+    no_gil
+      _read_and_profit(line_no, step)
+    end
   end
 
   cfunc void deallocate

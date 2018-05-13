@@ -8,8 +8,10 @@ require 'csv'
 
 describe RubexCSV do
   it "reads csv files" do
-    a = RubexCSV.new("/home/sameer/gitrepos/rubex_csv_reader/sales.csv")
-    a.read
+    a = RubexCSV.new("/home/sameer/gitrepos/rubex_csv_reader/sales.csv", 5_00_000)
+    puts a.hell
+    a.read(4)
+    
     avg_profit = a.avg_profit
     
     c = CSV.open("/home/sameer/gitrepos/rubex_csv_reader/sales.csv")
