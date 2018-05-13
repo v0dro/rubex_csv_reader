@@ -1,0 +1,58 @@
+# FIXME: This call should be handled via an API declared in rubex_require style file.
+lib "rubex/ruby"; end
+
+# FIXME: Have some 'api' files that allow accessing these functions directly.
+lib "<stdio.h>"
+  struct FILE
+  end
+  alias FILE = struct FILE
+  
+  FILE * fopen(char *, char *)
+  char * fgets(char *, int n, FILE *)
+  int fclose( FILE * )
+end
+
+struct csv_data
+  FILE *file
+  char * data
+end
+
+class RubexCSV attach csv_data
+  def initialize(file_name, lines)
+    @file_name = file_name
+    @lines = lines
+    char * file = @file_name
+    int num_lines = @lines
+    
+    data$.csv_data.file = fopen(file, "r");
+    
+    if data$.csv_data.file == NULL
+      raise("Cannot read this file")
+    end
+
+    data$.csv_data.data = <char *>xmalloc(sizeof(char)*num_lines*200);
+  end
+
+  cfunc void _read_and_profit(int line)
+      
+  end
+
+  # Multi-threaded reading of files. 
+  # Method of working:
+  # * Spawn 4 threads and pass the line numbers which are to be read for each thread.
+  # * Inside each thread 
+  def read_and_profit(line)
+    int line_no = line
+    
+  end
+
+  def avg_profit
+    
+  end
+
+  cfunc void deallocate
+    fclose(data$.csv_data.file)
+    xfree(data$.csv_data.data)
+    xfree(data$.csv_data)
+  end
+end
