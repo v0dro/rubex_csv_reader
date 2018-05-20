@@ -10,27 +10,31 @@ lib "<stdio.h>"
   FILE * fopen(char *, char *)
   char * fgets(char *, int n, FILE *)
   int fclose( FILE * )
-  
+end
+
+lib "<stdlib.h>"
+  int atoi(char *)
 end
 
 struct csv_data
   FILE *file
   char * data
+  int *means
 end
 
 class RubexCSV attach csv_data
   def initialize(file_name, lines)
     @file_name = file_name
     @lines = lines
+    @part_profit = []
     char * file = @file_name
     int num_lines = @lines
     
     data$.csv_data.file = fopen(file, "r")
     
     if data$.csv_data.file == NULL
-      raise("Cannot read this file")
+      # raise("Cannot read this file")
     end
-    data$.csv_data.data = <char *>xmalloc(sizeof(char)*num_lines*200)
     int i = 0
     while(i < num_lines) do
       fgets(&data$.csv_data.data[i*200], 200, data$.csv_data.file)
@@ -38,12 +42,33 @@ class RubexCSV attach csv_data
     end
   end
 
-  cfunc void _read_and_profit(int line, int step) no_gil
+  # line - the line number to start at
+  # step - the max line number for this block in the csv file
+  cfunc int _read_and_profit(int line, int step, char * data) no_gil
     int i = line
-
+    int commas, j
+    char c
+    char *current_line
+    long int sum = 0
+  
     while(i < step) do
-      
+      commas = 0
+      j = 0
+      current_line = &data[i*200]
+    
+      while (commas < 14) do
+        while (j < 200) do
+          if (current_line[j] == ',')
+            commas += 1
+          end
+          j += 1
+        end
+      end
+
+      sum += atoi(&current_line[j])
     end
+
+    return sum
   end
 
   # Multi-threaded reading of files. 
@@ -53,9 +78,18 @@ class RubexCSV attach csv_data
   def read_and_profit(line, step_size)
     int line_no = line
     int step = step_size
+    long int pr = 0
+    char *d = data$.csv_data.data
     no_gil
-      _read_and_profit(line_no, step)
+      pr += _read_and_profit(line_no, step, d)
     end
+
+    @part_profit.push(pr)
+  end
+
+  cfunc void allocate
+    data$.csv_data = <csv_data *>xmalloc(sizeof(csv_data))
+    data$.csv_data.data = <char *>xmalloc(sizeof(char)*num_lines*200)
   end
 
   cfunc void deallocate
