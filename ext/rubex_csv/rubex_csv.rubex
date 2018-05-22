@@ -22,19 +22,16 @@ struct csv_data
   int *means
 end
 
-class RubexCSV attach csv_data
+class NativeThreadReader attach csv_data
   def initialize(file_name, lines)
     @file_name = file_name
     @lines = lines
-    @part_profit = []
     char * file = @file_name
     int num_lines = @lines
     
     data$.csv_data.file = fopen(file, "r")
-    
-    if data$.csv_data.file == NULL
-      # raise("Cannot read this file")
-    end
+    raise(ArgumentError, "Cannot read this file") if data$.csv_data.file == NULL
+
     int i = 0
     while(i < num_lines) do
       fgets(&data$.csv_data.data[i*200], 200, data$.csv_data.file)
@@ -44,28 +41,26 @@ class RubexCSV attach csv_data
 
   # line - the line number to start at
   # step - the max line number for this block in the csv file
-  cfunc int _read_and_profit(int line, int step, char * data) no_gil
+  cfunc double _read_and_profit(int line, int step, char * d) no_gil
     int i = line
     int commas, j
     char c
     char *current_line
-    long int sum = 0
+    double sum = 0
   
     while(i < step) do
       commas = 0
       j = 0
-      current_line = &data[i*200]
+      current_line = &d[i*200]
     
-      while (commas < 14) do
-        while (j < 200) do
-          if (current_line[j] == ',')
-            commas += 1
-          end
-          j += 1
+      while (commas < 13) do
+        if (current_line[j] == ',')
+          commas += 1
         end
+        j += 1
       end
-
       sum += atoi(&current_line[j])
+      i += 1
     end
 
     return sum
@@ -78,18 +73,18 @@ class RubexCSV attach csv_data
   def read_and_profit(line, step_size)
     int line_no = line
     int step = step_size
-    long int pr = 0
+    double pr = 0
     char *d = data$.csv_data.data
     no_gil
-      pr += _read_and_profit(line_no, step, d)
+      pr = _read_and_profit(line_no, step + line_no, d)
     end
 
-    @part_profit.push(pr)
+    return pr
   end
 
-  cfunc void allocate
+  cfunc object allocate
     data$.csv_data = <csv_data *>xmalloc(sizeof(csv_data))
-    data$.csv_data.data = <char *>xmalloc(sizeof(char)*num_lines*200)
+    data$.csv_data.data = <char *>xmalloc(sizeof(char)*500000*200)
   end
 
   cfunc void deallocate
