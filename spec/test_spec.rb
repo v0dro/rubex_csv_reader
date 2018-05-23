@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'rspec'
 require 'pry'
 require 'pry-byebug'
@@ -8,31 +9,36 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rubex_csv'
 require 'csv'
 require 'benchmark'
+require "benchmark/ips"
 
 describe "native threads vs green threads" do
   it "reads csv files" do
     aa = nil
     bb = nil
-    Benchmark.bm do |x|
-      x.report("Native threads without GIL") do
-        a = NativeThreadReader.new("/Users/sameer/gitrepos/rubex_csv_reader/sales.csv", 5_00_000)
+    a = nil
+    
+    a = NativeThreadReader.new("/Users/sameer/gitrepos/rubex_csv_reader/sales.csv", 5_00_000)
+    f = GreenThreadReader.new("/Users/sameer/gitrepos/rubex_csv_reader/sales.csv", 5_00_000)
+    Benchmark.ips do |x|
+      x.report("execute without gil") do
         a.read(4)
-        aa = a.avg_profit
       end
 
-      x.report("Green threads with GIL") do
-        f = GreenThreadReader.new("/Users/sameer/gitrepos/rubex_csv_reader/sales.csv", 5_00_000)
+      x.report("execute with gil") do
         f.read(4)
-        bb = f.avg_profit.to_s
       end
+      x.compare!
     end
-
-    puts "With GIL : #{bb}. Without GIL : #{aa}."
   end
 end
 
-#        user     system      total        real
-# Native threads without GIL  0.150000   0.050000   0.200000 (  0.124440)
-# Green threads with GIL  9.370000   0.110000   9.480000 (  9.529908)
-# With GIL : 392476. Without GIL : 392476.74685.
-# .
+# Warming up --------------------------------------
+#  execute without gil     3.000  i/100ms
+#     execute with gil     1.000  i/100ms
+# Calculating -------------------------------------
+#  execute without gil     39.617  (± 2.5%) i/s -    198.000  in   5.004711s
+#     execute with gil      0.105  (± 0.0%) i/s -      1.000  in   9.532940s
+
+# Comparison:
+#  execute without gil:       39.6 i/s
+#     execute with gil:        0.1 i/s - 377.67x  slower

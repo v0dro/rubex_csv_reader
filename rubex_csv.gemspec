@@ -25,4 +25,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubex', '0.1.1'
   spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'pry-byebug'
+  spec.add_development_dependency 'benchmark-ips'
 end

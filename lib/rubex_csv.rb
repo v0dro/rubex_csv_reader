@@ -1,4 +1,5 @@
 require 'rubex_csv.so'
+require 'benchmark/ips'
 
 class NativeThreadReader
   attr_reader :profit
@@ -7,7 +8,7 @@ class NativeThreadReader
     records = @lines
     t = []
     (0...500000).step(records/threads) do |rec|
-     t << Thread.new { read_and_profit(rec, records/threads) }
+      t << Thread.new { read_and_profit(rec, records/threads) }
     end
     t.each { |a| a.join }
     @profit = t.map { |q| q.value }.inject(:+) / @lines
