@@ -19,16 +19,23 @@ describe "native threads vs green threads" do
     
     a = NativeThreadReader.new("/Users/sameer/gitrepos/rubex_csv_reader/sales.csv", 5_00_000)
     f = GreenThreadReader.new("/Users/sameer/gitrepos/rubex_csv_reader/sales.csv", 5_00_000)
+    
     Benchmark.ips do |x|
-      x.report("execute without gil") do
+      x.report("without GIL in C") do
         a.read(4)
       end
-
-      x.report("execute with gil") do
+      
+      x.report("with GIL in Ruby") do
         f.read(4)
+      end
+      
+      x.report("with GIL in C") do
+        a.read_single
       end
       x.compare!
     end
+    
+    puts "\nsingle : #{a.simple} profit : #{a.profit} f read : #{f.avg_profit}"
   end
 end
 

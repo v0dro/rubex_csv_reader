@@ -2,7 +2,7 @@ require 'rubex_csv.so'
 require 'benchmark/ips'
 
 class NativeThreadReader
-  attr_reader :profit
+  attr_reader :profit, :simple
 
   def read threads
     records = @lines
@@ -12,6 +12,11 @@ class NativeThreadReader
     end
     t.each { |a| a.join }
     @profit = t.map { |q| q.value }.inject(:+) / @lines
+  end
+
+  def read_single
+    a = read_and_profit(0, 5_00_000)
+    @simple = a / @lines
   end
 
   def avg_profit
@@ -57,3 +62,4 @@ class GreenThreadReader
     @avg_profit = t.map { |a| a.value }.inject(:+) / @lines
   end
 end
+
